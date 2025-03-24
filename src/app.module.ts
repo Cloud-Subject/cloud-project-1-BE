@@ -15,16 +15,36 @@ import { Task } from './tasks/task.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get('DB_USERNAME', 'postgres'),
-        password: configService.get('DB_PASSWORD', 'postgres'),
-        database: configService.get('DB_NAME', 'task_manager'),
-        entities: [User, Task],
-        synchronize: configService.get('NODE_ENV') !== 'production',
-      }),
+      useFactory: (configService: ConfigService) => {
+        console.log(
+          'DB_NAME trong app.module.ts:',
+          configService.get('DB_DATABASE'),
+        );
+        console.log(
+          process.env.DB_HOST,
+          process.env.DB_PORT,
+          process.env.DB_USERNAME,
+          process.env.DB_PASSWORD,
+          process.env.DB_DATABASE,
+        );
+        return {
+          type: 'postgres',
+          host:
+            process.env.DB_HOST || configService.get('DB_HOST', 'localhost'),
+          port:
+            Number(process.env.DB_PORT) || configService.get('DB_PORT', 5432),
+          username:
+            process.env.DB_USERNAME ||
+            configService.get('DB_USERNAME', 'postgres'),
+          password:
+            process.env.DB_PASSWORD ||
+            configService.get('DB_PASSWORD', 'password'),
+          database:
+            process.env.DB_DATABASE || configService.get('DB_DATABASE', 'task'),
+          entities: [User, Task],
+          synchronize: configService.get('NODE_ENV') !== 'production',
+        };
+      },
     }),
     UsersModule,
     TasksModule,
