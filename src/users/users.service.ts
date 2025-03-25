@@ -17,19 +17,41 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const { username } = createUserDto;
-    const existingUser = await this.usersRepository.findOne({
-      where: [{ username }],
-    });
+    try {
+      const { email, password, fullName, role = 'user' } = createUserDto;
 
-    if (existingUser) {
-      throw new ConflictException(
-        `User with username ${username} or email already exists`,
-      );
+      const existingUser = await this.usersRepository.findOne({
+        where: { email },
+      });
+
+      if (existingUser) {
+        throw new ConflictException(`User with email ${email} already exists`);
+      }
+
+      if (role === 'admin') {
+        throw new ConflictException('Cannot create an admin user');
+      }
+
+      const user = new User();
+      user.email = email;
+      user.password = password;
+      user.fullName = fullName;
+      user.role = role;
+
+      await user.hashPassword();
+      const isValid = await user.validatePassword(password);
+      if (!isValid) {
+        throw new Error('Invalid password');
+      }
+      return await this.usersRepository.save(user);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error creating user:', error.message);
+      } else {
+        console.error('Error creating user:', error);
+      }
+      throw error;
     }
-
-    const user = this.usersRepository.create(createUserDto);
-    return this.usersRepository.save(user);
   }
 
   async findAll(): Promise<User[]> {
@@ -46,8 +68,8 @@ export class UsersService {
     return user;
   }
 
-  async findByUsername(username: string): Promise<User | undefined> {
-    const user = await this.usersRepository.findOne({ where: { username } });
+  async findByEmail(email: string): Promise<User | undefined> {
+    const user = await this.usersRepository.findOne({ where: { email } });
     return user ?? undefined;
   }
 
