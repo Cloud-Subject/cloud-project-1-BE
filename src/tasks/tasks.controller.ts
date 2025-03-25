@@ -19,6 +19,11 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
+  @Get('hello')
+  hello() {
+    return 'Hello from tasks';
+  }
+
   @Post()
   create(
     @Body() createTaskDto: CreateTaskDto,

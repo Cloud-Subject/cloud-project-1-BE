@@ -5,8 +5,9 @@ import {
   CreateDateColumn,
   OneToMany,
   BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
-import * as argon2 from 'argon2'; // Sử dụng argon2 thay vì bcrypt
+import * as bcrypt from 'bcrypt';
 import { Task } from '../tasks/task.entity';
 import { Exclude } from 'class-transformer';
 
@@ -16,14 +17,14 @@ export class User {
   id: string;
 
   @Column({ unique: true })
-  username: string;
+  email: string;
 
   @Column()
   @Exclude({ toPlainOnly: true }) // Ẩn password khi trả về response
   password: string;
 
   @Column()
-  fullName: string;
+  fullName?: string;
 
   @Column()
   role: string;
@@ -35,20 +36,25 @@ export class User {
   tasks: Task[];
 
   @BeforeInsert()
+  @BeforeUpdate()
   async hashPassword(): Promise<void> {
     try {
-      this.password = await argon2.hash(this.password); // Mã hóa password bằng argon2
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
     } catch (error) {
-      console.error('Error hashing password:', error);
+      const err = error as Error;
+      console.error('Error hashing password:', err.message);
       throw new Error('Failed to hash password');
     }
   }
 
   async validatePassword(plainPassword: string): Promise<boolean> {
     try {
-      return await argon2.verify(this.password, plainPassword);
+      return await bcrypt.compare(plainPassword, this.password);
     } catch (error) {
-      console.error('Error verifying password:', error);
+      if (error instanceof Error) {
+        console.error('Error verifying password:', error.message);
+      }
       return false;
     }
   }
