@@ -7,6 +7,12 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './users/user.entity';
 import { Task } from './tasks/task.entity';
 
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+import { UsersController } from './users/users.controller';
+import { TasksController } from './tasks/tasks.controller';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -50,5 +56,7 @@ import { Task } from './tasks/task.entity';
     TasksModule,
     AuthModule,
   ],
+  controllers: [AppController, UsersController, TasksController],
+  providers: [AppService],
 })
 export class AppModule {}

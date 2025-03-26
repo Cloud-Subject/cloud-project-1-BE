@@ -2,70 +2,49 @@ import {
   Controller,
   Get,
   Post,
-  Body,
-  Patch,
+  Put,
   Param,
-  Delete,
-  UseGuards,
-  Request,
+  Body,
+  Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Task } from './task.entity';
 
 @Controller('tasks')
-@UseGuards(JwtAuthGuard)
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
-  @Get('hello')
-  hello() {
-    return 'Hello from tasks';
+  @Post()
+  async addTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
+    return await this.tasksService.addTask(createTaskDto);
   }
 
-  @Post()
-  create(
-    @Body() createTaskDto: CreateTaskDto,
-    @Request() req: Express.Request,
-  ) {
-    return this.tasksService.create(
-      createTaskDto,
-      (req.user as { userId: string }).userId,
-    );
+  @Put(':id')
+  async editTask(
+    @Param('id') id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+  ): Promise<Task> {
+    return await this.tasksService.editTask(id, updateTaskDto);
   }
 
   @Get()
-  findAll(@Request() req: Express.Request) {
-    return this.tasksService.findAll((req.user as { userId: string }).userId);
+  async getAllTasks(): Promise<Task[]> {
+    return await this.tasksService.getAllTasks();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Request() req: Express.Request) {
-    return this.tasksService.findOne(
-      id,
-      (req.user as { userId: string }).userId,
-    );
+  async getTaskById(@Param('id') id: string): Promise<Task> {
+    return await this.tasksService.getTaskById(id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateTaskDto: UpdateTaskDto,
-    @Request() req: Express.Request,
-  ) {
-    return this.tasksService.update(
-      id,
-      updateTaskDto,
-      (req.user as { userId: string }).userId,
-    );
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string, @Request() req: Express.Request) {
-    return this.tasksService.remove(
-      id,
-      (req.user as { userId: string }).userId,
-    );
+  @Get('/filter')
+  async filterTasks(
+    @Query('dueDate') dueDate?: string,
+    @Query('priority') priority?: number,
+  ): Promise<Task[]> {
+    const formattedDueDate = dueDate ? new Date(dueDate) : undefined;
+    return await this.tasksService.filterTasks(formattedDueDate, priority);
   }
 }
