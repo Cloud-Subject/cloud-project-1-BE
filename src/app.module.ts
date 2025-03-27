@@ -49,8 +49,12 @@ import { TasksController } from './tasks/tasks.controller';
             process.env.DB_DATABASE || configService.get('DB_DATABASE', 'task'),
           entities: [User, Task],
           synchronize: configService.get('NODE_ENV') !== 'production',
+          ssl: {
+            rejectUnauthorized: false, // Bỏ qua kiểm tra chứng chỉ (dùng cho test)
+          },
         };
       },
+      
     }),
     UsersModule,
     TasksModule,
