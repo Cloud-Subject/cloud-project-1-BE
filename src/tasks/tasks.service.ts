@@ -38,6 +38,18 @@ export class TasksService {
     return task;
   }
 
+  async deleteTask(id: string): Promise<void> {
+    const task = await this.taskRepository.findOne({ where: { id } });
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${id} not found`);
+    }
+    await this.taskRepository.delete(id);
+  }
+
+  async getTasksByUserId(userId: string): Promise<Task[]> {
+    return await this.taskRepository.find({ where: { userId } });
+  }
+
   async filterTasks(
     dueDate?: Date,
     priority?: number,

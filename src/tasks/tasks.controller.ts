@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -37,6 +38,17 @@ export class TasksController {
   @Get(':id')
   async getTaskById(@Param('id') id: string): Promise<Task> {
     return await this.tasksService.getTaskById(id);
+  }
+
+  @Get('user/:userId')
+  async getTasksByUserId(@Param('userId') userId: string): Promise<Task[]> {
+    return await this.tasksService.getTasksByUserId(userId);
+  }
+
+  //ham xoa
+  @Delete(':id')
+  async deleteTask(@Param('id') id: string): Promise<void> {
+    return await this.tasksService.deleteTask(id);
   }
 
   @Get('/filter')

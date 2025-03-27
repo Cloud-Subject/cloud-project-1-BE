@@ -11,6 +11,7 @@ const mockTaskRepository = () => ({
   save: jest.fn(),
   find: jest.fn(),
   findOne: jest.fn(),
+  delete: jest.fn(),
   createQueryBuilder: jest.fn(() => ({
     andWhere: jest.fn().mockReturnThis(),
     getMany: jest.fn(),
@@ -127,6 +128,58 @@ describe('TasksService', () => {
       await expect(tasksService.getTaskById('1')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('deleteTask', () => {
+    it('should delete a task successfully', async () => {
+      const taskId = '1';
+      const task = { id: taskId, title: 'Task to delete' };
+  
+      taskRepository.findOne!.mockResolvedValue(task);
+      taskRepository.delete!.mockResolvedValue({ affected: 1 });
+  
+      await tasksService.deleteTask(taskId);
+  
+      expect(taskRepository.findOne).toHaveBeenCalledWith({ where: { id: taskId } });
+      expect(taskRepository.delete).toHaveBeenCalledWith(taskId);
+    });
+  
+    it('should throw NotFoundException if task does not exist', async () => {
+      const taskId = '1';
+  
+      taskRepository.findOne!.mockResolvedValue(null);
+  
+      await expect(tasksService.deleteTask(taskId)).rejects.toThrow(NotFoundException);
+      expect(taskRepository.findOne).toHaveBeenCalledWith({ where: { id: taskId } });
+    });
+  });
+
+  describe('getTasksByUserId', () => {
+    it('should return tasks for a specific user', async () => {
+      const userId = 'user-id';
+      const tasks = [
+        { id: '1', title: 'Task 1', userId },
+        { id: '2', title: 'Task 2', userId },
+      ];
+  
+      taskRepository.find!.mockResolvedValue(tasks);
+  
+      const result = await tasksService.getTasksByUserId(userId);
+  
+      expect(taskRepository.find).toHaveBeenCalledWith({ where: { userId } });
+      expect(result).toEqual(tasks);
+    });
+  
+    it('should return an empty array if no tasks found', async () => {
+      const userId = 'user-id';
+  
+      taskRepository.find!.mockResolvedValue([]);
+  
+      const result = await tasksService.getTasksByUserId(userId);
+  
+      expect(taskRepository.find).toHaveBeenCalledWith({ where: { userId } });
+      expect(result).toEqual([]);
     });
   });
 
