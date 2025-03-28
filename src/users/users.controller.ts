@@ -22,13 +22,13 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  //@UseGuards(JwtAuthGuard) // Bỏ comment để bật chức năng bảo vệ
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
+  //@UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);

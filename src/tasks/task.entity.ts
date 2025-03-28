@@ -38,6 +38,9 @@ export class Task {
   updatedAt: Date;
 
   @Column()
+  priority: number;
+
+  @Column()
   userId: string;
 
   @ManyToOne(() => User, (user) => user.tasks, { onDelete: 'CASCADE' })

@@ -23,11 +23,19 @@ export class User {
   @Exclude({ toPlainOnly: true }) // Ẩn password khi trả về response
   password: string;
 
-  @Column()
+  @Column(
+    {default: 'User'}
+  )
   fullName?: string;
 
   @Column()
   role: string;
+
+  @Column({ type: 'boolean', default: false })
+  isActive: boolean;
+
+  @CreateDateColumn()
+  lastLogin: Date;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -7,6 +7,12 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './users/user.entity';
 import { Task } from './tasks/task.entity';
 
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+import { UsersController } from './users/users.controller';
+import { TasksController } from './tasks/tasks.controller';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -43,12 +49,18 @@ import { Task } from './tasks/task.entity';
             process.env.DB_DATABASE || configService.get('DB_DATABASE', 'task'),
           entities: [User, Task],
           synchronize: configService.get('NODE_ENV') !== 'production',
+          ssl: {
+            rejectUnauthorized: false, // Bỏ qua kiểm tra chứng chỉ (dùng cho test)
+          },
         };
       },
+      
     }),
     UsersModule,
     TasksModule,
     AuthModule,
   ],
+  controllers: [AppController, UsersController, TasksController],
+  providers: [AppService],
 })
 export class AppModule {}
