@@ -46,17 +46,33 @@ describe('TasksService', () => {
         title: 'Test Task',
         description: 'Test Description',
         priority: 1,
-        userId: 'user-id',
       };
-      const savedTask = { id: '1', ...createTaskDto };
+
+      const userId = 'user-id-from-token';
+
+      const newtask ={
+        ...createTaskDto,
+        userId,
+      }
+
+      const savedTask = { 
+        id: '1', 
+        ...newtask,
+      };
 
       taskRepository.create!.mockReturnValue(savedTask);
       taskRepository.save!.mockResolvedValue(savedTask);
 
-      const result = await tasksService.addTask(createTaskDto);
+      const result = await tasksService.addTask(newtask);
 
-      expect(taskRepository.create).toHaveBeenCalledWith(createTaskDto);
+      // Kiểm tra các bước trong quá trình xử lý
+      expect(taskRepository.create).toHaveBeenCalledWith({
+        ...createTaskDto,
+        userId: 'user-id-from-token',
+      });
       expect(taskRepository.save).toHaveBeenCalledWith(savedTask);
+
+      // Kết quả phải khớp với task đã lưu
       expect(result).toEqual(savedTask);
     });
   });
@@ -195,20 +211,54 @@ describe('TasksService', () => {
   });
 
   describe('filterTasks', () => {
-    it('should filter tasks by due date and priority', async () => {
+    it('should filter tasks by id, due date, and priority', async () => {
+      const id = '1';
       const dueDate = new Date('2023-12-01');
       const priority = 1;
-      const tasks = [{ id: '1', title: 'Filtered Task' }];
-
-      taskRepository.createQueryBuilder!.mockReturnValue({
+      const tasks = [{ id: '1', title: 'Filtered Task', dueDate, priority }];
+  
+      const mockQueryBuilder = {
         andWhere: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValueOnce(tasks),
-      });
-
-      const result = await tasksService.filterTasks(dueDate, priority);
-
+      };
+  
+      taskRepository.createQueryBuilder = jest.fn().mockReturnValue(mockQueryBuilder);
+      taskRepository.findOne = jest.fn();
+  
+      const result = await tasksService.filterTasks(id, dueDate, priority);
+  
+      // Kiểm tra các lời gọi hàm
       expect(taskRepository.createQueryBuilder).toHaveBeenCalledWith('task');
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.id = :id', { id });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.dueDate = :dueDate', { dueDate });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.priority = :priority', { priority });
+  
+      // Kết quả trả về phải khớp với mock data
       expect(result).toEqual(tasks);
     });
-  });
+  
+    it('should throw NotFoundException if no tasks are found', async () => {
+      const id = '2';
+      const dueDate = new Date('2023-12-01');
+      const priority = 1;
+  
+      const mockQueryBuilder = {
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValueOnce([]), // Trả về danh sách rỗng
+      };
+  
+      taskRepository.createQueryBuilder = jest.fn().mockReturnValue(mockQueryBuilder);
+  
+      // Xác nhận ngoại lệ được ném ra
+      await expect(tasksService.filterTasks(id, dueDate, priority)).rejects.toThrow(
+        new NotFoundException('No tasks found with the given criteria'),
+      );
+  
+      // Kiểm tra các lời gọi hàm
+      expect(taskRepository.createQueryBuilder).toHaveBeenCalledWith('task');
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.id = :id', { id });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.dueDate = :dueDate', { dueDate });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.priority = :priority', { priority });
+    });
+  });  
 });

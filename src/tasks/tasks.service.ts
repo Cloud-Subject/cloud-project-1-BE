@@ -50,16 +50,25 @@ export class TasksService {
     return await this.taskRepository.find({ where: { userId } });
   }
 
-  async filterTasks(dueDate?: Date, priority?: number): Promise<Task[]> {
+  async filterTasks(id?: string, dueDate?: Date, priority?: number): Promise<Task[]> {
     const query = this.taskRepository.createQueryBuilder('task');
-
+  
+    if (id) {
+      query.andWhere('task.id = :id', { id });
+    }
     if (dueDate) {
       query.andWhere('task.dueDate = :dueDate', { dueDate });
     }
     if (priority !== undefined) {
       query.andWhere('task.priority = :priority', { priority });
     }
-
-    return await query.getMany();
-  }
+  
+    const tasks = await query.getMany();
+  
+    if (tasks.length === 0) {
+      throw new NotFoundException('No tasks found with the given criteria');
+    }
+  
+    return tasks;
+  }  
 }
