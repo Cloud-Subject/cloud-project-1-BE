@@ -50,10 +50,7 @@ export class TasksService {
     return await this.taskRepository.find({ where: { userId } });
   }
 
-  async filterTasks(
-    dueDate?: Date,
-    priority?: number,
-  ): Promise<Task[]> {
+  async filterTasks(dueDate?: Date, priority?: number): Promise<Task[]> {
     const query = this.taskRepository.createQueryBuilder('task');
 
     if (dueDate) {

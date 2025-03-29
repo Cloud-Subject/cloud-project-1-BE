@@ -28,9 +28,14 @@ export class AuthService {
 
   login(user: { id: string; email: string }) {
     const payload = { email: user.email, sub: user.id };
+    console.log('Payload for JWT:', payload); // Log the payload used to generate the token
+    const token = this.jwtService.sign(payload, {
+      expiresIn: '1h', // Token expiration time
+    });
+    console.log('Generated JWT token:', payload); // Log the generated token
 
     return {
-      accessToken: this.jwtService.sign(payload),
+      accessToken: token,
       user: {
         id: user.id,
         email: user.email,

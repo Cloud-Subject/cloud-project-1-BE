@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsEnum, IsDate, IsNumber, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsDate,
+  IsNumber,
+  IsUUID,
+} from 'class-validator';
 import { TaskStatus } from '../task-status.enum';
 
 export class CreateTaskDto {
@@ -20,6 +27,7 @@ export class CreateTaskDto {
   @IsNumber()
   priority: number;
 
+  @IsOptional()
   @IsUUID()
   userId: string;
 }
