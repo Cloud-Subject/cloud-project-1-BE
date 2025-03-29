@@ -1,0 +1,41 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh deploy@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e  # Dừng script nếu có lỗi
+            cd /home/deploy/backend-repo
+
+            echo "🔄 Pulling latest changes..."
+            git pull origin main
+
+            echo "📦 Installing dependencies..."
+            npm install
+
+            echo "🔐 Updating environment variables..."
+            echo "${{ secrets.ENV_FILE }}" > .env
+
+            echo "🚀 Restarting application..."
+            pm2 restart backend --update-env
+          EOF
+          echo "✅ Deployment completed successfully!"

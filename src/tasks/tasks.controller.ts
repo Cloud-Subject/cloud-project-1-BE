@@ -70,5 +70,4 @@ export class TasksController {
     const formattedDueDate = dueDate ? new Date(dueDate) : undefined;
     return await this.tasksService.filterTasks(id, formattedDueDate, priority);
   }
-
 }
