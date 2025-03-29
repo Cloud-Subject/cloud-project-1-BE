@@ -54,7 +54,6 @@ import { TasksController } from './tasks/tasks.controller';
           },
         };
       },
-      
     }),
     UsersModule,
     TasksModule,
