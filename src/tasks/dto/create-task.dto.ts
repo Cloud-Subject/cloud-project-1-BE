@@ -1,14 +1,14 @@
 import {
-  IsNotEmpty,
-  IsOptional,
   IsString,
-  IsDateString,
+  IsOptional,
   IsEnum,
+  IsDate,
+  IsNumber,
+  IsUUID,
 } from 'class-validator';
 import { TaskStatus } from '../task-status.enum';
 
 export class CreateTaskDto {
-  @IsNotEmpty()
   @IsString()
   title: string;
 
@@ -21,6 +21,13 @@ export class CreateTaskDto {
   status?: TaskStatus;
 
   @IsOptional()
-  @IsDateString()
-  dueDate?: string;
+  @IsDate()
+  dueDate?: Date;
+
+  @IsNumber()
+  priority: number;
+
+  @IsOptional()
+  @IsUUID()
+  userId: string;
 }

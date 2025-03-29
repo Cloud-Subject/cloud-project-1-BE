@@ -9,55 +9,66 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 export class TasksService {
   constructor(
     @InjectRepository(Task)
-    private tasksRepository: Repository<Task>,
+    private readonly taskRepository: Repository<Task>,
   ) {}
 
-  async create(createTaskDto: CreateTaskDto, userId: string): Promise<Task> {
-    const task = this.tasksRepository.create({
-      ...createTaskDto,
-      userId,
-    });
-
-    return this.tasksRepository.save(task);
+  async addTask(createTaskDto: CreateTaskDto): Promise<Task> {
+    const task = this.taskRepository.create(createTaskDto);
+    return await this.taskRepository.save(task);
   }
 
-  async findAll(userId: string): Promise<Task[]> {
-    return this.tasksRepository.find({
-      where: { userId },
-      order: { createdAt: 'DESC' },
-    });
-  }
-
-  async findOne(id: string, userId: string): Promise<Task> {
-    const task = await this.tasksRepository.findOne({
-      where: { id, userId },
-    });
-
+  async editTask(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
+    const task = await this.taskRepository.findOne({ where: { id } });
     if (!task) {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
+    const updatedTask = { ...task, ...updateTaskDto };
+    return await this.taskRepository.save(updatedTask);
+  }
 
+  async getAllTasks(): Promise<Task[]> {
+    return await this.taskRepository.find();
+  }
+
+  async getTaskById(id: string): Promise<Task> {
+    const task = await this.taskRepository.findOne({ where: { id } });
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${id} not found`);
+    }
     return task;
   }
 
-  async update(
-    id: string,
-    updateTaskDto: UpdateTaskDto,
-    userId: string,
-  ): Promise<Task> {
-    const task = await this.findOne(id, userId);
-
-    // Update task with new data
-    Object.assign(task, updateTaskDto);
-
-    return this.tasksRepository.save(task);
-  }
-
-  async remove(id: string, userId: string): Promise<void> {
-    const result = await this.tasksRepository.delete({ id, userId });
-
-    if (result.affected === 0) {
+  async deleteTask(id: string): Promise<void> {
+    const task = await this.taskRepository.findOne({ where: { id } });
+    if (!task) {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
+    await this.taskRepository.delete(id);
   }
+
+  async getTasksByUserId(userId: string): Promise<Task[]> {
+    return await this.taskRepository.find({ where: { userId } });
+  }
+
+  async filterTasks(id?: string, dueDate?: Date, priority?: number): Promise<Task[]> {
+    const query = this.taskRepository.createQueryBuilder('task');
+  
+    if (id) {
+      query.andWhere('task.id = :id', { id });
+    }
+    if (dueDate) {
+      query.andWhere('task.dueDate = :dueDate', { dueDate });
+    }
+    if (priority !== undefined) {
+      query.andWhere('task.priority = :priority', { priority });
+    }
+  
+    const tasks = await query.getMany();
+  
+    if (tasks.length === 0) {
+      throw new NotFoundException('No tasks found with the given criteria');
+    }
+  
+    return tasks;
+  }  
 }

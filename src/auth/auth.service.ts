@@ -11,36 +11,41 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(username: string, password: string): Promise<User | null> {
-    const user = await this.usersService.findByUsername(username);
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const user = await this.usersService.findByEmail(email);
 
     if (!user) {
-      return null;
+      throw new Error('Email not found');
     }
 
-    const isPasswordValid = await user.validatePassword(password);
-    if (!isPasswordValid) {
-      return null;
+    const isValid = await user.validatePassword(password);
+    if (!isValid) {
+      throw new Error('Invalid password');
     }
 
-    return user; // Trả về User thay vì any
+    return user;
   }
 
-  login(user: { id: string; username: string }) {
-    const payload = { username: user.username, sub: user.id };
+  login(user: { id: string; email: string }) {
+    const payload = { email: user.email, sub: user.id };
+    console.log('Payload for JWT:', payload); // Log the payload used to generate the token
+    const token = this.jwtService.sign(payload, {
+      expiresIn: '1h', // Token expiration time
+    });
+    console.log('Generated JWT token:', payload); // Log the generated token
 
     return {
-      accessToken: this.jwtService.sign(payload),
+      accessToken: token,
       user: {
         id: user.id,
-        username: user.username,
+        email: user.email,
       },
     };
   }
 
   async register(
     createUserDto: CreateUserDto,
-  ): Promise<{ accessToken: string; user: { id: string; username: string } }> {
+  ): Promise<{ accessToken: string; user: { id: string; email: string } }> {
     const user = await this.usersService.create(createUserDto);
     return this.login(user);
   }

@@ -2,65 +2,73 @@ import {
   Controller,
   Get,
   Post,
-  Body,
-  Patch,
+  Put,
   Param,
+  Body,
+  Query,
   Delete,
-  UseGuards,
-  Request,
+  Req,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Task } from './task.entity';
+import { Request } from 'express';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('tasks')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt')) // Sử dụng AuthGuard để bảo vệ các route
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
-  create(
+  async addTask(
+    @Req() req: Request,
     @Body() createTaskDto: CreateTaskDto,
-    @Request() req: Express.Request,
-  ) {
-    return this.tasksService.create(
-      createTaskDto,
-      (req.user as { userId: string }).userId,
-    );
+  ): Promise<Task> {
+    const user = req.user as { userId: string };
+    createTaskDto.userId = user.userId; // Gán userId từ token vào task
+    return await this.tasksService.addTask(createTaskDto);
+  }
+
+  @Put(':id')
+  async editTask(
+    @Param('id') id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+  ): Promise<Task> {
+    return await this.tasksService.editTask(id, updateTaskDto);
   }
 
   @Get()
-  findAll(@Request() req: Express.Request) {
-    return this.tasksService.findAll((req.user as { userId: string }).userId);
+  async getAllTasks(): Promise<Task[]> {
+    return await this.tasksService.getAllTasks();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string, @Request() req: Express.Request) {
-    return this.tasksService.findOne(
-      id,
-      (req.user as { userId: string }).userId,
-    );
+  // @Get(':id')
+  // async getTaskById(@Param('id') id: string): Promise<Task> {
+  //   return await this.tasksService.getTaskById(id);
+  // }
+
+  @Get('user/:userId')
+  async getTasksByUserId(@Param('userId') userId: string): Promise<Task[]> {
+    return await this.tasksService.getTasksByUserId(userId);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateTaskDto: UpdateTaskDto,
-    @Request() req: Express.Request,
-  ) {
-    return this.tasksService.update(
-      id,
-      updateTaskDto,
-      (req.user as { userId: string }).userId,
-    );
-  }
-
+  //ham xoa
   @Delete(':id')
-  remove(@Param('id') id: string, @Request() req: Express.Request) {
-    return this.tasksService.remove(
-      id,
-      (req.user as { userId: string }).userId,
-    );
+  async deleteTask(@Param('id') id: string): Promise<void> {
+    return await this.tasksService.deleteTask(id);
   }
+
+  @Get('/filter')
+  async filterTasks(
+    @Query('id') id?: string,
+    @Query('dueDate') dueDate?: string,
+    @Query('priority') priority?: number,
+  ): Promise<Task[]> {
+    const formattedDueDate = dueDate ? new Date(dueDate) : undefined;
+    return await this.tasksService.filterTasks(id, formattedDueDate, priority);
+  }
+
 }
