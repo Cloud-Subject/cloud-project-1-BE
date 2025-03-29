@@ -5,7 +5,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 
-
 const mockTaskRepository = () => ({
   create: jest.fn(),
   save: jest.fn(),
@@ -18,7 +17,9 @@ const mockTaskRepository = () => ({
   })),
 });
 
-type MockRepository<T extends ObjectLiteral = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
+type MockRepository<T extends ObjectLiteral = any> = Partial<
+  Record<keyof Repository<T>, jest.Mock>
+>;
 
 describe('TasksService', () => {
   let tasksService: TasksService;
@@ -77,7 +78,9 @@ describe('TasksService', () => {
 
       const result = await tasksService.editTask('1', updateTaskDto);
 
-      expect(taskRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(taskRepository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
       expect(taskRepository.save).toHaveBeenCalledWith({
         ...existingTask,
         ...updateTaskDto,
@@ -118,7 +121,9 @@ describe('TasksService', () => {
 
       const result = await tasksService.getTaskById('1');
 
-      expect(taskRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(taskRepository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
       expect(result).toEqual(task);
     });
 
@@ -135,23 +140,29 @@ describe('TasksService', () => {
     it('should delete a task successfully', async () => {
       const taskId = '1';
       const task = { id: taskId, title: 'Task to delete' };
-  
+
       taskRepository.findOne!.mockResolvedValue(task);
       taskRepository.delete!.mockResolvedValue({ affected: 1 });
-  
+
       await tasksService.deleteTask(taskId);
-  
-      expect(taskRepository.findOne).toHaveBeenCalledWith({ where: { id: taskId } });
+
+      expect(taskRepository.findOne).toHaveBeenCalledWith({
+        where: { id: taskId },
+      });
       expect(taskRepository.delete).toHaveBeenCalledWith(taskId);
     });
-  
+
     it('should throw NotFoundException if task does not exist', async () => {
       const taskId = '1';
-  
+
       taskRepository.findOne!.mockResolvedValue(null);
-  
-      await expect(tasksService.deleteTask(taskId)).rejects.toThrow(NotFoundException);
-      expect(taskRepository.findOne).toHaveBeenCalledWith({ where: { id: taskId } });
+
+      await expect(tasksService.deleteTask(taskId)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(taskRepository.findOne).toHaveBeenCalledWith({
+        where: { id: taskId },
+      });
     });
   });
 
@@ -162,22 +173,22 @@ describe('TasksService', () => {
         { id: '1', title: 'Task 1', userId },
         { id: '2', title: 'Task 2', userId },
       ];
-  
+
       taskRepository.find!.mockResolvedValue(tasks);
-  
+
       const result = await tasksService.getTasksByUserId(userId);
-  
+
       expect(taskRepository.find).toHaveBeenCalledWith({ where: { userId } });
       expect(result).toEqual(tasks);
     });
-  
+
     it('should return an empty array if no tasks found', async () => {
       const userId = 'user-id';
-  
+
       taskRepository.find!.mockResolvedValue([]);
-  
+
       const result = await tasksService.getTasksByUserId(userId);
-  
+
       expect(taskRepository.find).toHaveBeenCalledWith({ where: { userId } });
       expect(result).toEqual([]);
     });

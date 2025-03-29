@@ -7,18 +7,28 @@ import {
   Body,
   Query,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './task.entity';
+import { Request } from 'express';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('tasks')
+@UseGuards(AuthGuard('jwt')) // Sử dụng AuthGuard để bảo vệ các route
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
-  async addTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
+  async addTask(
+    @Req() req: Request,
+    @Body() createTaskDto: CreateTaskDto,
+  ): Promise<Task> {
+    const user = req.user as { userId: string };
+    createTaskDto.userId = user.userId; // Gán userId từ token vào task
     return await this.tasksService.addTask(createTaskDto);
   }
 
