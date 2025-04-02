@@ -50,12 +50,9 @@ export class TasksService {
     return await this.taskRepository.find({ where: { userId } });
   }
 
-  async filterTasks(id?: string, dueDate?: Date, priority?: number): Promise<Task[]> {
+  async filterTasks(dueDate?: Date, priority?: number): Promise<Task[]> {
     const query = this.taskRepository.createQueryBuilder('task');
-  
-    if (id) {
-      query.andWhere('task.id = :id', { id });
-    }
+    
     if (dueDate) {
       query.andWhere('task.dueDate = :dueDate', { dueDate });
     }
