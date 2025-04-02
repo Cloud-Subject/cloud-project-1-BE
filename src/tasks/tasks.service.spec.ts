@@ -212,7 +212,6 @@ describe('TasksService', () => {
 
   describe('filterTasks', () => {
     it('should filter tasks by id, due date, and priority', async () => {
-      const id = '1';
       const dueDate = new Date('2023-12-01');
       const priority = 1;
       const tasks = [{ id: '1', title: 'Filtered Task', dueDate, priority }];
@@ -225,11 +224,10 @@ describe('TasksService', () => {
       taskRepository.createQueryBuilder = jest.fn().mockReturnValue(mockQueryBuilder);
       taskRepository.findOne = jest.fn();
   
-      const result = await tasksService.filterTasks(id, dueDate, priority);
+      const result = await tasksService.filterTasks(dueDate, priority);
   
       // Kiểm tra các lời gọi hàm
       expect(taskRepository.createQueryBuilder).toHaveBeenCalledWith('task');
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.id = :id', { id });
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.dueDate = :dueDate', { dueDate });
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.priority = :priority', { priority });
   
@@ -250,13 +248,12 @@ describe('TasksService', () => {
       taskRepository.createQueryBuilder = jest.fn().mockReturnValue(mockQueryBuilder);
   
       // Xác nhận ngoại lệ được ném ra
-      await expect(tasksService.filterTasks(id, dueDate, priority)).rejects.toThrow(
+      await expect(tasksService.filterTasks(dueDate, priority)).rejects.toThrow(
         new NotFoundException('No tasks found with the given criteria'),
       );
   
       // Kiểm tra các lời gọi hàm
       expect(taskRepository.createQueryBuilder).toHaveBeenCalledWith('task');
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.id = :id', { id });
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.dueDate = :dueDate', { dueDate });
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.priority = :priority', { priority });
     });

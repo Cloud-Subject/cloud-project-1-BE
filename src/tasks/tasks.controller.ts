@@ -45,10 +45,10 @@ export class TasksController {
     return await this.tasksService.getAllTasks();
   }
 
-  // @Get(':id')
-  // async getTaskById(@Param('id') id: string): Promise<Task> {
-  //   return await this.tasksService.getTaskById(id);
-  // }
+  @Get(':id')
+  async getTaskById(@Param('id') id: string): Promise<Task> {
+    return await this.tasksService.getTaskById(id);
+  }
 
   @Get('user/:userId')
   async getTasksByUserId(@Param('userId') userId: string): Promise<Task[]> {
@@ -63,12 +63,11 @@ export class TasksController {
 
   @Get('/filter')
   async filterTasks(
-    @Query('id') id?: string,
     @Query('dueDate') dueDate?: string,
     @Query('priority') priority?: number,
   ): Promise<Task[]> {
     const formattedDueDate = dueDate ? new Date(dueDate) : undefined;
-    return await this.tasksService.filterTasks(id, formattedDueDate, priority);
+    return await this.tasksService.filterTasks(formattedDueDate, priority);
   }
 
 }
