@@ -45,10 +45,10 @@ export class TasksController {
     return await this.tasksService.getAllTasks();
   }
 
-  // @Get(':id')
-  // async getTaskById(@Param('id') id: string): Promise<Task> {
-  //   return await this.tasksService.getTaskById(id);
-  // }
+  @Get(':id')
+  async getTaskById(@Param('id') id: string): Promise<Task> {
+    return await this.tasksService.getTaskById(id);
+  }
 
   @Get('user/:userId')
   async getTasksByUserId(@Param('userId') userId: string): Promise<Task[]> {
