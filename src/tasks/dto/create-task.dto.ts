@@ -2,11 +2,11 @@ import {
   IsString,
   IsOptional,
   IsEnum,
-  IsDate,
   IsNumber,
   IsUUID,
 } from 'class-validator';
 import { TaskStatus } from '../task-status.enum';
+import { Type } from 'class-transformer';
 
 export class CreateTaskDto {
   @IsString()
@@ -21,7 +21,7 @@ export class CreateTaskDto {
   status?: TaskStatus;
 
   @IsOptional()
-  @IsDate()
+  @Type(() => Date) 
   dueDate?: Date;
 
   @IsNumber()
